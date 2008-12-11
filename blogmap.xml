@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<Module>
+  <ModulePrefs title="Blog Map"
+      description="Display blog posts on a map."
+      height="250"
+      author="Brian Ngo"
+      author_email="briancse+blogmap@gmail.com">
+    <Require feature="dynamic-height" />
+    <Require feature="setprefs" />
+  </ModulePrefs>
+  <UserPref name="feedUrl" display_name="Blog's GeoRSS feed URL. Save as empty to reset." />
+  <UserPref name="height" display_name="Height in pixels"
+      required="true" default_value="250" />
+  <Content type="html">
+    <![CDATA[
+      <style type="text/css">
+        .inputBox {
+          border-color: #777777 #AAAAAA #AAAAAA #777777;
+          border-style: solid;
+          border-width: 1px;
+          padding: 2px;
+          width: 100%;
+        }
+        
+        .inputBox-hint {
+          border-color: #777777 #AAAAAA #AAAAAA #777777;
+          border-style: solid;
+          border-width: 1px;
+          padding: 2px;
+          width: 96%;
+          color: #999;
+          font-style: italic;
+        }
+        
+        .statusMsg {
+          font-size: small;
+          color: #333;
+          font-style: italic;
+        }
+        
+        .statusMsg-error {
+          font-size: small;
+          color: red;
+          font-weight: bold;
+        }
+      </style>
+      <script src="http://maps.google.com/maps?file=api&amp;v=2.x&amp;key=ABQIAAAAn138JcpDQexRxBMx-GYAehTZqGWfQErE9pT-IucjscazSdFnjBS4hjjTEOYU89NegWNS5Bv9cZZO8g"
+          type="text/javascript"></script>
+      <div id="instructions" style="display: none; font-size: 14px;">
+        <p>
+          To display your blog posts on a map, enter your <b>blog's URL</b> below.
+          Alternatively, you can also enter your blog's <b>RSS or Atom feed URL</b>.
+        </p>
+        <input type="text" id="feedUrl" name="feedUrl" class="inputBox-hint"
+            value="Example: http://your-blog-url.blogspot.com" />
+        <div style="padding: 5px 10px 0 0;">
+          <input type="button" id="okButton" name="okButton" value="Fetch my blog!" />
+        </div>
+        <div id="statusMsg" class="statusMsg"></div>
+      </div>
+      <div id="map"></div>
+      <script type="text/javascript">
+        var PREFS = new gadgets.Prefs();
+        var MAP = null;
+        var WIDTH = gadgets.window.getViewportDimensions().width;
+        var HEIGHT = PREFS.getInt('height');
+        var FEEDURL = PREFS.getString('feedUrl');
+        var XML = null;
+        var BLOGSPOT_REGEX = new RegExp('blogspot\.com/?$');
+        
+        var inputBoxActivated = false;
+
+        function init() {
+          gadgets.window.adjustHeight(HEIGHT);
+          var container = document.getElementById('map');
+          container.style.height = HEIGHT + 'px';
+          container.style.width = WIDTH + 'px';
+
+          if (!FEEDURL) {
+            document.getElementById('instructions').style.display = '';
+            document.getElementById('feedUrl').onclick = activateInput;
+
+            document.getElementById('okButton').onclick = validateFeedUrl;
+          } else {
+            fetchFeed();
+          }
+        }
+        
+        function activateInput() {
+          if (!inputBoxActivated) {
+            document.getElementById('feedUrl').className = 'inputBox';
+            document.getElementById('feedUrl').value = '';
+            inputBoxActivated = true;
+          }
+        }
+        
+        function validateFeedUrl() {
+          document.getElementById('statusMsg').className = 'statusMsg';
+          document.getElementById('statusMsg').innerHTML = 'Validating feed...';
+
+          var feedUrl =
+              maybeFixUrl(document.getElementById('feedUrl').value);
+          
+          var params = {};
+          params[gadgets.io.RequestParameters.CONTENT_TYPE] =
+              gadgets.io.ContentType.FEED;
+          params[gadgets.io.RequestParameters.NUM_ENTRIES] = 1;
+          params[gadgets.io.RequestParameters.GET_SUMMARIES] = false;
+          gadgets.io.makeRequest(feedUrl, handleValidateFeed, params);
+        }
+        
+        /**
+         * Will attempt to detect a blogspot.com url without the feed suffix
+         * (e.g., http://ginternfoodblog.blogspot.com/). If detected, adds
+         * the feed suffix ("/feeds/posts/default"). Also, adds an http://
+         * protocol if one isn't present.
+         */
+        function maybeFixUrl(url) {
+          // trim whitepsace.
+          url = url.replace(/^\s*(\S*(\s+\S+)*)\s*$/, "$1");
+          // test blogspot url fix
+          if (BLOGSPOT_REGEX.test(url)) {
+            if (url[url.length - 1] != '/') {
+              url += '/';
+            }
+            url += 'feeds/posts/default';
+          }
+          // test http protocol fix
+          if (url.indexOf('http://') != 0) {
+            url = 'http://' + url;
+          }
+          return url;
+        }
+        
+        function handleValidateFeed(response) {
+          if (response && response.data && response.data.Entry) {
+            var feedUrl = response.data.URL;
+            PREFS.set('feedUrl', feedUrl);
+            FEEDURL = feedUrl;
+            fetchFeed();
+          } else {
+            document.getElementById('statusMsg').className = 'statusMsg-error';
+            document.getElementById('statusMsg').innerHTML =
+                'Couldn\'t find feed. Is the URL correct?';
+          }
+        }
+         
+        function fetchFeed() {
+          var params = {};
+          params[gadgets.io.RequestParameters.CONTENT_TYPE] =
+              gadgets.io.ContentType.DOM;
+          params[gadgets.io.RequestParameters.METHOD] = gadgets.io.MethodType.GET;
+          gadgets.io.makeRequest(FEEDURL, handleFetchFeed, params);
+        }
+         
+        function handleFetchFeed(response) {
+          document.getElementById('instructions').style.display = 'none';
+          var data = response.data;
+          var points = data.getElementsByTagName('georss:point');
+
+          // We weren't able to get any georss:point nodes, this might be a
+          // Webkit browser and just wants "point" as the tag name.
+          if (points.length == 0) {
+            points = data.getElementsByTagName('point');
+          }
+
+          var geoposts = [];
+          for (var i = 0; i < points.length; i++) {
+            var latlngPair = points[i].firstChild.nodeValue.split(' ');
+            var title = points[i].parentNode.getElementsByTagName('title')[0]
+                .firstChild.nodeValue;
+            var date;
+            var link;
+            var pubDate = points[i].parentNode.getElementsByTagName('pubDate');
+            if (pubDate.length > 0) {
+              // This is an RSS feed.
+              var tempDate = new Date();
+              tempDate.setTime(Date.parse(pubDate[0].firstChild.nodeValue));
+              date = tempDate.toLocaleDateString();
+              link = points[i].parentNode.getElementsByTagName('link')[0]
+                  .firstChild.nodeValue;
+            } else {
+              // This is an Atom feed.
+              date = points[i].parentNode.getElementsByTagName('updated')[0]
+                  .firstChild.nodeValue.substring(0, 10);
+              var links = points[i].parentNode.getElementsByTagName('link');
+              for (var n = 0; n < links.length; n++) {
+                if (links[n].getAttribute('rel') == 'alternate') {
+                  link = links[n].getAttribute('href');
+                  break;
+                }
+              }
+            }
+            geoposts.push({
+              'title': title,
+              'point': new google.maps.LatLng(latlngPair[0], latlngPair[1]),
+              'date': date,
+              'link': link
+            });
+          }
+          createMap(geoposts);
+        }
+
+        // Doing two loops here... non-ideal.. too tired to optimize.
+        function createMap(geodata) {
+          
+          var bounds = new google.maps.LatLngBounds();
+          for (var i = 0; i < geodata.length; i++) {
+            bounds.extend(geodata[i].point);
+          }
+        
+          MAP = new google.maps.Map2(document.getElementById('map'));
+          MAP.setCenter(bounds.getCenter(),
+                        MAP.getBoundsZoomLevel(bounds));
+          MAP.addControl(new google.maps.SmallZoomControl());
+
+          for (var i = 0; i < geodata.length; i++) {
+            var marker = new google.maps.Marker(geodata[i].point, {
+              'title': geodata[i].title
+            });
+            MAP.addOverlay(marker);
+            var infoHtml =
+                '<div style="font-size: small">' +
+                '<b>' + geodata[i].title + '</b>' +
+                '<div style="color: #666;">' +
+                'Posted on ' + geodata[i].date + '</div>' +
+                '<div style="font-size: small">' +
+                '<a href="' + geodata[i].link + '" target="_blank">' +
+                'View post</a></div>' +
+                '</div>';
+            marker.bindInfoWindowHtml(infoHtml);
+          }
+        }
+
+        gadgets.util.registerOnLoadHandler(init);
+      </script>
+    ]]>
+  </Content> 
+</Module>
