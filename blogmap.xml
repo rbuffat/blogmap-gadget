@@ -44,8 +44,8 @@
           font-weight: bold;
         }
       </style>
-      <script src="https://maps.google.com/maps?file=api&amp;v=2.x&amp;key=ABQIAAAAn138JcpDQexRxBMx-GYAehTZqGWfQErE9pT-IucjscazSdFnjBS4hjjTEOYU89NegWNS5Bv9cZZO8g"
-          type="text/javascript"></script>
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAc8NSWRE2ShOjJ04qsSPB4uYf4LMOkzco"
+          async defer></script>
       <div id="instructions" style="display: none; font-size: 14px;">
         <p>
           To display your blog posts on a map, enter your <b>blog's URL</b> below.
@@ -212,7 +212,7 @@
             bounds.extend(geodata[i].point);
           }
 
-          MAP = new google.maps.Map2(document.getElementById('map'));
+          MAP = new google.maps.Map(document.getElementById('map'));
           MAP.setCenter(bounds.getCenter(),
                         MAP.getBoundsZoomLevel(bounds));
           MAP.addControl(new google.maps.SmallZoomControl());
