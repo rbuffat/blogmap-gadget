@@ -76,6 +76,8 @@
           container.style.height = HEIGHT + 'px';
           container.style.width = WIDTH + 'px';
 
+          alert(FEEDURL)
+
           if (!FEEDURL) {
             document.getElementById('instructions').style.display = '';
             document.getElementById('feedUrl').onclick = activateInput;
