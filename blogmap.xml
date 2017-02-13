@@ -44,8 +44,6 @@
           font-weight: bold;
         }
       </style>
-      <script src="http://maps.google.com/maps?file=api&amp;v=2.x&amp;key=ABQIAAAAn138JcpDQexRxBMx-GYAehTZqGWfQErE9pT-IucjscazSdFnjBS4hjjTEOYU89NegWNS5Bv9cZZO8g"
-          type="text/javascript"></script>
       <div id="instructions" style="display: none; font-size: 14px;">
         <p>
           To display your blog posts on a map, enter your <b>blog's URL</b> below.
