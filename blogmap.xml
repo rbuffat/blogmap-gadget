@@ -59,7 +59,7 @@
       <script type="text/javascript">
         var PREFS = new gadgets.Prefs();
         var MAP = null;
-        var WIDTH = 200px;
+        var WIDTH = 200;
         var HEIGHT = PREFS.getInt('height');
         var FEEDURL = PREFS.getString('feedUrl');
         var XML = null;
