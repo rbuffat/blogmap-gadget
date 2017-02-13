@@ -76,7 +76,7 @@
           container.style.height = HEIGHT + 'px';
           container.style.width = WIDTH + 'px';
 
-          alert(FEEDURL)
+          alert(FEEDURL);
 
           if (!FEEDURL) {
             document.getElementById('instructions').style.display = '';
@@ -102,6 +102,7 @@
 
           var feedUrl =
               maybeFixUrl(document.getElementById('feedUrl').value);
+          alert("after + maybeFixUrl" + feedUrl);
 
           var params = {};
           params[gadgets.io.RequestParameters.CONTENT_TYPE] =
