@@ -68,7 +68,6 @@
         var inputBoxActivated = false;
 
         function init() {
-          gadgets.window.adjustHeight(HEIGHT);
           var container = document.getElementById('map');
           container.style.height = HEIGHT + 'px';
           container.style.width = WIDTH + 'px';
