@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?> 
+<?xml version="1.0" encoding="UTF-8" ?>
 <Module>
   <ModulePrefs title="Blog Map"
       description="Display blog posts on a map."
@@ -21,7 +21,7 @@
           padding: 2px;
           width: 100%;
         }
-        
+
         .inputBox-hint {
           border-color: #777777 #AAAAAA #AAAAAA #777777;
           border-style: solid;
@@ -31,13 +31,13 @@
           color: #999;
           font-style: italic;
         }
-        
+
         .statusMsg {
           font-size: small;
           color: #333;
           font-style: italic;
         }
-        
+
         .statusMsg-error {
           font-size: small;
           color: red;
@@ -67,7 +67,7 @@
         var FEEDURL = PREFS.getString('feedUrl');
         var XML = null;
         var BLOGSPOT_REGEX = new RegExp('blogspot\.com/?$');
-        
+
         var inputBoxActivated = false;
 
         function init() {
@@ -85,7 +85,7 @@
             fetchFeed();
           }
         }
-        
+
         function activateInput() {
           if (!inputBoxActivated) {
             document.getElementById('feedUrl').className = 'inputBox';
@@ -93,14 +93,14 @@
             inputBoxActivated = true;
           }
         }
-        
+
         function validateFeedUrl() {
           document.getElementById('statusMsg').className = 'statusMsg';
           document.getElementById('statusMsg').innerHTML = 'Validating feed...';
 
           var feedUrl =
               maybeFixUrl(document.getElementById('feedUrl').value);
-          
+
           var params = {};
           params[gadgets.io.RequestParameters.CONTENT_TYPE] =
               gadgets.io.ContentType.FEED;
@@ -108,7 +108,7 @@
           params[gadgets.io.RequestParameters.GET_SUMMARIES] = false;
           gadgets.io.makeRequest(feedUrl, handleValidateFeed, params);
         }
-        
+
         /**
          * Will attempt to detect a blogspot.com url without the feed suffix
          * (e.g., http://ginternfoodblog.blogspot.com/). If detected, adds
@@ -128,10 +128,12 @@
           // test http protocol fix
           if (url.indexOf('http://') != 0) {
             url = 'http://' + url;
+          } elif (url.indexOf('https://') != 0) {
+            url = 'https://' + url;
           }
           return url;
         }
-        
+
         function handleValidateFeed(response) {
           if (response && response.data && response.data.Entry) {
             var feedUrl = response.data.URL;
@@ -144,7 +146,7 @@
                 'Couldn\'t find feed. Is the URL correct?';
           }
         }
-         
+
         function fetchFeed() {
           var params = {};
           params[gadgets.io.RequestParameters.CONTENT_TYPE] =
@@ -152,7 +154,7 @@
           params[gadgets.io.RequestParameters.METHOD] = gadgets.io.MethodType.GET;
           gadgets.io.makeRequest(FEEDURL, handleFetchFeed, params);
         }
-         
+
         function handleFetchFeed(response) {
           document.getElementById('instructions').style.display = 'none';
           var data = response.data;
@@ -203,12 +205,12 @@
 
         // Doing two loops here... non-ideal.. too tired to optimize.
         function createMap(geodata) {
-          
+
           var bounds = new google.maps.LatLngBounds();
           for (var i = 0; i < geodata.length; i++) {
             bounds.extend(geodata[i].point);
           }
-        
+
           MAP = new google.maps.Map2(document.getElementById('map'));
           MAP.setCenter(bounds.getCenter(),
                         MAP.getBoundsZoomLevel(bounds));
@@ -235,5 +237,5 @@
         gadgets.util.registerOnLoadHandler(init);
       </script>
     ]]>
-  </Content> 
+  </Content>
 </Module>
