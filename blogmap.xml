@@ -82,7 +82,7 @@
 
             document.getElementById('okButton').onclick = validateFeedUrl;
           } else {
-            fetchFeed();
+
           }
         }
 
@@ -152,7 +152,7 @@
           params[gadgets.io.RequestParameters.CONTENT_TYPE] =
               gadgets.io.ContentType.DOM;
           params[gadgets.io.RequestParameters.METHOD] = gadgets.io.MethodType.GET;
-          gadgets.io.makeRequest("https://rene-en-gros.blogspot.ch/feeds/posts/default?alt=rss", handleFetchFeed, params);
+          gadgets.io.makeRequest(FEEDURL, handleFetchFeed, params);
         }
 
         function handleFetchFeed(response) {
