@@ -126,9 +126,7 @@
             url += 'feeds/posts/default';
           }
           // test http protocol fix
-          if (url.indexOf('http://') != 0) {
-            url = 'http://' + url;
-          } elif (url.indexOf('https://') != 0) {
+          if (url.indexOf('http://') != 0 || url.indexOf('https://') != 0) {
             url = 'https://' + url;
           }
           return url;
