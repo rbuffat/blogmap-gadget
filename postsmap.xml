@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Posts Map" />
+  <Content type="html">
+     <![CDATA[
+     <p id="demo"></p>
+     <script type="text/javascript">
+       document.getElementById("demo").innerHTML = window.location.hostname
+     </script
+     ]]>
+  </Content>
+</Module>
